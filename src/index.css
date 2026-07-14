@@ -474,6 +474,55 @@ input, select, textarea {
   50% { opacity: .5; }
 }
 
+/* ── Tab content entrance animation ─────────────────────────────────────── */
+.tab-content-enter {
+  animation: fadeSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Staggered child entrance (for lists/cards) ──────────────────────────── */
+.stagger-children > * {
+  animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(n+7) { animation-delay: 240ms; }
+
+/* ── TCP Congestion pulse ring ───────────────────────────────────────────── */
+@keyframes tcp-pulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(2.2); }
+}
+
+/* ── Simulator button active scale ──────────────────────────────────────── */
+.sim-btn-active {
+  transform: scale(1.04);
+  transition: transform 0.15s ease;
+}
+
+/* ── Slide-up entrance for new log entries ───────────────────────────────── */
+@keyframes logEntryIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.tcp-log-new {
+  animation: logEntryIn 0.3s ease-out both;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
   height: 4px;

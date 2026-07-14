@@ -283,7 +283,7 @@ export default function App() {
         </header>
 
         {/* Tab contents router */}
-        <div className="p-6 md:p-8 flex-1 max-w-5xl mx-auto w-full">
+        <div key={activeTab} className="tab-content-enter p-6 md:p-8 flex-1 max-w-5xl mx-auto w-full">
           
           {/* SEARCH TRIGGER */}
           {searchQuery && (
