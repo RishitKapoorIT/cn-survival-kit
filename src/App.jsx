@@ -33,13 +33,44 @@ import FlashcardGame from './components/FlashcardGame';
 import MockExamEngine from './components/MockExamEngine';
 import TcpCongestionVisualizer from './components/TcpCongestionVisualizer';
 import NumericalGenerator from './components/NumericalGenerator';
+import OsiDiagram from './components/OsiDiagram';
+
+const PROGRESS_TASKS = ['theory', 'formula', 'numericals', 'pyqs', 'revision'];
+const TASK_LABELS = { theory: '📖 Theory', formula: '🧮 Formula', numericals: '🔢 Numericals', pyqs: '📝 PYQs', revision: '⚡ Revision' };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('theory'); // theory, formulas, derivations, simulators, comparisons, viva, pyq, mocks, revision
+  const [activeTab, setActiveTab] = useState('theory');
   const [selectedChapterId, setSelectedChapterId] = useState(1);
-  const [activeSim, setActiveSim] = useState('subnetting'); // subnetting, delay, window, routing, crc
+  const [activeSim, setActiveSim] = useState('subnetting');
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarkedChapters, setBookmarkedChapters] = useState(new Set());
+
+  // ── Reading Progress (persisted to localStorage) ──────────────────────
+  const [chapterProgress, setChapterProgress] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cn_chapter_progress') || '{}'); }
+    catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cn_chapter_progress', JSON.stringify(chapterProgress));
+  }, [chapterProgress]);
+
+  const toggleTask = (chapterId, task) => {
+    setChapterProgress(prev => {
+      const chap = prev[chapterId] || {};
+      return { ...prev, [chapterId]: { ...chap, [task]: !chap[task] } };
+    });
+  };
+
+  const getProgress = (chapterId) => {
+    const chap = chapterProgress[chapterId] || {};
+    const done = PROGRESS_TASKS.filter(t => chap[t]).length;
+    return Math.round((done / PROGRESS_TASKS.length) * 100);
+  };
+
+  const overallProgress = Math.round(
+    chaptersData.reduce((sum, ch) => sum + getProgress(ch.id), 0) / chaptersData.length
+  );
 
   useEffect(() => {
     let timer;
@@ -330,24 +361,57 @@ export default function App() {
               
               {/* Chapter Sidebar selector */}
               <div className="lg:col-span-1 bg-[#0c1222] border border-slate-900 rounded-2xl p-4 space-y-1.5 select-none sticky top-24">
-                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono px-2">
-                  Chapters
-                </span>
-                <div className="max-h-[60vh] overflow-y-auto space-y-1.5 scrollbar-thin">
-                  {chaptersData.map((ch) => (
-                    <button
-                      key={ch.id}
-                      onClick={() => setSelectedChapterId(ch.id)}
-                      className={`w-full text-left py-2 px-3 rounded-lg text-xs font-medium transition flex items-center justify-between ${
-                        selectedChapterId === ch.id
-                          ? 'bg-sky-500/10 border border-sky-500/30 text-sky-400 font-bold'
-                          : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
-                      }`}
-                    >
-                      <span className="truncate pr-1">Ch {ch.id}. {ch.title.split(' ')[0]} {ch.title.split(' ').slice(1).join(' ')}</span>
-                      {bookmarkedChapters.has(ch.id) && <Bookmark className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0 ml-1" />}
-                    </button>
-                  ))}
+                {/* Overall progress bar */}
+                <div className="px-2 mb-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">Overall Progress</span>
+                    <span className="text-[10px] font-black font-mono" style={{ color: overallProgress >= 80 ? '#4ade80' : overallProgress >= 40 ? '#fbbf24' : '#60a5fa' }}>{overallProgress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${overallProgress}%`,
+                        background: overallProgress >= 80 ? 'linear-gradient(90deg,#10b981,#4ade80)' : overallProgress >= 40 ? 'linear-gradient(90deg,#d97706,#fbbf24)' : 'linear-gradient(90deg,#2563eb,#60a5fa)'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono px-2">Chapters</span>
+                <div className="max-h-[55vh] overflow-y-auto space-y-1 scrollbar-thin">
+                  {chaptersData.map((ch) => {
+                    const pct = getProgress(ch.id);
+                    return (
+                      <button
+                        key={ch.id}
+                        onClick={() => setSelectedChapterId(ch.id)}
+                        className={`w-full text-left py-2 px-3 rounded-lg text-xs font-medium transition ${
+                          selectedChapterId === ch.id
+                            ? 'bg-sky-500/10 border border-sky-500/30 text-sky-400 font-bold'
+                            : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="truncate pr-1">Ch {ch.id}. {ch.title.split(' ').slice(0, 3).join(' ')}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {bookmarkedChapters.has(ch.id) && <Bookmark className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                            {pct === 100 && <span className="text-emerald-400 text-[10px]">✓</span>}
+                          </div>
+                        </div>
+                        {/* Per-chapter mini progress bar */}
+                        <div className="h-1 bg-slate-900 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pct}%`,
+                              background: pct === 100 ? '#10b981' : pct > 0 ? '#3b82f6' : 'transparent'
+                            }}
+                          />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -356,10 +420,33 @@ export default function App() {
                 
                 {/* Introduction & Analogy */}
                 <div className="glass-panel p-6 rounded-2xl border border-slate-800/80 shadow-xl space-y-4">
-                  <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider font-mono bg-sky-950/40 border border-sky-900 px-2.5 py-1 rounded-full">
-                    Chapter {selectedChapter.id} Overview
-                  </span>
-                  <h3 className="text-2xl font-extrabold text-slate-100 mt-2">{selectedChapter.title}</h3>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider font-mono bg-sky-950/40 border border-sky-900 px-2.5 py-1 rounded-full">
+                      Chapter {selectedChapter.id} Overview
+                    </span>
+                    {/* Chapter completion checkboxes */}
+                    <div className="flex flex-wrap gap-2">
+                      {PROGRESS_TASKS.map(task => {
+                        const done = !!(chapterProgress[selectedChapter.id] || {})[task];
+                        return (
+                          <button
+                            key={task}
+                            onClick={() => toggleTask(selectedChapter.id, task)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer"
+                            style={{
+                              background: done ? 'rgba(16,185,129,0.15)' : 'rgba(15,23,42,0.6)',
+                              border: `1px solid ${done ? '#10b981' : '#1e293b'}`,
+                              color: done ? '#4ade80' : '#64748b',
+                            }}
+                          >
+                            <span>{done ? '☑' : '☐'}</span>
+                            {TASK_LABELS[task]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-slate-100">{selectedChapter.title}</h3>
                   
                   {/* Learning Objectives */}
                   <div className="bg-slate-950 p-4 rounded-xl border border-slate-900/80">
@@ -644,6 +731,16 @@ export default function App() {
                 >
                   🎲 Numerical Gen
                 </button>
+                <button
+                  onClick={() => setActiveSim('osi_diagram')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer select-none ${
+                    activeSim === 'osi_diagram'
+                      ? 'bg-sky-500 text-slate-950 shadow-[0_0_8px_rgba(56,189,248,0.3)]'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  🌐 OSI Model
+                </button>
               </div>
 
               {/* Renders Selected Simulator */}
@@ -655,6 +752,7 @@ export default function App() {
                 {activeSim === 'crc' && <CrcChecksumCalculator />}
                 {activeSim === 'tcp_congestion' && <TcpCongestionVisualizer />}
                 {activeSim === 'numerical_gen' && <NumericalGenerator />}
+                {activeSim === 'osi_diagram' && <OsiDiagram />}
               </div>
             </div>
           )}
