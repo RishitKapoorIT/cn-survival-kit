@@ -558,12 +558,34 @@ input, select, textarea {
   .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media print {
-  body {
-    background: white;
-    color: black;
-  }
-  aside, header, footer, button {
-    display: none !important;
+/* ── Hero Dashboard responsive row ───────────────────────────────────────── */
+.lg-hero-row {
+  flex-direction: column;
+}
+@media (min-width: 900px) {
+  .lg-hero-row {
+    flex-direction: row;
+    align-items: center;
   }
 }
+
+/* ── Missing grid/col utilities ──────────────────────────────────────────── */
+.lg\:col-span-3 { grid-column: span 3 / span 3; }
+.lg\:col-span-4 { grid-column: span 4 / span 4; }
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:col-span-1 { grid-column: span 1 / span 1; }
+  .lg\:col-span-2 { grid-column: span 2 / span 2; }
+  .lg\:col-span-3 { grid-column: span 3 / span 3; }
+  .lg\:flex-row   { flex-direction: row; }
+  .lg\:w-72       { width: 18rem; }
+  .lg\:justify-between { justify-content: space-between; }
+  .lg\:items-start { align-items: flex-start; }
+  .min-h-\[300px\] { min-height: 300px; }
+  .min-h-\[400px\] { min-height: 400px; }
+  .max-h-\[140px\] { max-height: 140px; }
+  .max-h-\[130px\] { max-height: 130px; }
+  .max-h-\[55vh\]  { max-height: 55vh; }
+}
+

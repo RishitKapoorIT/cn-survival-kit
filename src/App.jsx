@@ -34,12 +34,13 @@ import MockExamEngine from './components/MockExamEngine';
 import TcpCongestionVisualizer from './components/TcpCongestionVisualizer';
 import NumericalGenerator from './components/NumericalGenerator';
 import OsiDiagram from './components/OsiDiagram';
+import HeroDashboard from './components/HeroDashboard';
 
 const PROGRESS_TASKS = ['theory', 'formula', 'numericals', 'pyqs', 'revision'];
 const TASK_LABELS = { theory: '📖 Theory', formula: '🧮 Formula', numericals: '🔢 Numericals', pyqs: '📝 PYQs', revision: '⚡ Revision' };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('theory');
+  const [activeTab, setActiveTab] = useState('home');
   const [selectedChapterId, setSelectedChapterId] = useState(1);
   const [activeSim, setActiveSim] = useState('subnetting');
   const [searchQuery, setSearchQuery] = useState('');
@@ -149,6 +150,19 @@ export default function App() {
 
         {/* Sidebar Nav Items */}
         <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto scrollbar-thin">
+          <button
+            onClick={() => handleQuickLink('home')}
+            className={`w-full text-left py-2.5 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${
+              activeTab === 'home'
+                ? 'bg-purple-500/10 border-l-2 border-purple-400 text-purple-300 font-bold'
+                : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+            }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4" /> Dashboard
+            </span>
+          </button>
+
           <button
             onClick={() => handleQuickLink('theory')}
             className={`w-full text-left py-2.5 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${
@@ -353,6 +367,15 @@ export default function App() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* TAB: HOME DASHBOARD */}
+          {activeTab === 'home' && (
+            <HeroDashboard
+              onNavigate={(tab) => handleQuickLink(tab)}
+              chapterProgress={chapterProgress}
+              chaptersData={chaptersData}
+            />
           )}
 
           {/* TAB: THEORY */}
